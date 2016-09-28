@@ -60,6 +60,7 @@
                   <Connection code="new RegKeyModel()" type="code"/>
                 </Property>
                 <Property name="rootVisible" type="boolean" value="false"/>
+                <Property name="showsRootHandles" type="boolean" value="true"/>
               </Properties>
             </Component>
           </SubComponents>

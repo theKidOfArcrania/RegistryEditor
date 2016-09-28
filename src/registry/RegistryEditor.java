@@ -8,7 +8,7 @@
  *
  * Created on Sep 26, 2016, 10:05:20 AM
  */
-package registryviewer;
+package registry;
 
 import com.sun.jna.platform.win32.Win32Exception;
 import java.util.function.Supplier;
@@ -34,7 +34,6 @@ public class RegistryEditor extends javax.swing.JFrame {
 		try {
 			return action.get();
 		} catch (Win32Exception e) {
-			e.printStackTrace();
 			JOptionPane.showMessageDialog(this, "Error " + e.getHR().intValue()
 				+ "(" + e.getMessage() + ")", getTitle(),
 				JOptionPane.ERROR_MESSAGE);
@@ -68,9 +67,7 @@ public class RegistryEditor extends javax.swing.JFrame {
 			if (o == ROOT) {
 				return ROOT_KEYS.length;
 			} else {
-				int val = tryAction(() -> ((RegKey) o).getSubKeys().length, 0);
-				System.out.println(val);
-				return val;
+				return tryAction(() -> ((RegKey) o).getSubKeys().length, 0);
 			}
 		}
 
@@ -89,11 +86,9 @@ public class RegistryEditor extends javax.swing.JFrame {
 			if (parent == ROOT) {
 				return ((RegKeyRoot) child).ordinal();
 			} else {
-				System.out.println("HELLO");
 				RegKey[] subKeys = tryAction(() -> ((RegKey) parent).getSubKeys());
 				for (int i = 0; i < subKeys.length; i++) {
 					if (subKeys[i] == child) {
-						System.out.println("BYE");
 						return i;
 					}
 				}
@@ -144,6 +139,7 @@ public class RegistryEditor extends javax.swing.JFrame {
 
         treRegKeys.setModel(new RegKeyModel());
         treRegKeys.setRootVisible(false);
+        treRegKeys.setShowsRootHandles(true);
         srpRegKeys.setViewportView(treRegKeys);
 
         splRegEditing.setLeftComponent(srpRegKeys);
