@@ -8,6 +8,7 @@ import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.WinReg;
 import com.sun.jna.platform.win32.WinReg.HKEY;
 import com.sun.jna.platform.win32.WinReg.HKEYByReference;
+import java.util.HashMap;
 
 /**
  *
@@ -21,26 +22,43 @@ public enum RegKeyRoot implements RegKey {
 	HKEY_USERS(WinReg.HKEY_USERS),
 	HKEY_CURRENT_CONFIG(WinReg.HKEY_CURRENT_CONFIG);
 
+	private boolean attempted = false;
 	private final HKEYByReference hKey;
-	private RegSubKey[] subKeys;
-
+	private RegSubKey[] subKeysList;
+	private final HashMap<String, RegSubKey> subKeys;
+	
 	private RegKeyRoot(HKEY root) {
 		this.hKey = new HKEYByReference(root);
+		subKeys = new HashMap<>();
 	}
 
 	@Override
 	public RegSubKey[] getSubKeys() {
-		if (subKeys != null) {
-			return subKeys;
-		}
-
-		subKeys = new RegSubKey[0];
+		attempted = false;
+		if (!attempted)
+			refresh();		
+		return subKeysList;
+	}
+	
+	@Override
+	public void refresh()
+	{
+		subKeysList = new RegSubKey[0];
 
 		String[] subKeyNames = Advapi32Util.registryGetKeys(hKey.getValue());
-		subKeys = new RegSubKey[subKeyNames.length];
-		for (int i = 0; i < subKeys.length; i++) {
-			subKeys[i] = new RegSubKey(hKey, subKeyNames[i]);
+		subKeysList = new RegSubKey[subKeyNames.length];
+		for (int i = 0; i < subKeysList.length; i++) {
+			if (subKeys.containsKey(subKeyNames[i]))
+			{
+				subKeysList[i] = subKeys.get(subKeyNames[i]);
+				subKeysList[i].refresh();
+			}
+			else
+			{
+				subKeysList[i] = new RegSubKey(hKey, subKeyNames[i]);
+				subKeys.put(subKeyNames[i], subKeysList[i]);
+			}
 		}
-		return subKeys;
 	}
+	
 }

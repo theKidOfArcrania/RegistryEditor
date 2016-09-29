@@ -13,4 +13,7 @@ public interface RegKey {
 
 	RegSubKey[] getSubKeys();
 
+	RegValue[] getValues();
+	
+	void refresh();
 }

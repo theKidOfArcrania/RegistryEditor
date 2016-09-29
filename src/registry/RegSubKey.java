@@ -9,7 +9,9 @@ import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.W32Errors;
 import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinNT;
+import com.sun.jna.platform.win32.WinReg.HKEY;
 import com.sun.jna.platform.win32.WinReg.HKEYByReference;
+import java.util.HashMap;
 
 /**
  *
@@ -19,11 +21,13 @@ public class RegSubKey implements RegKey {
 
 	private static final Advapi32 REGS = Advapi32.INSTANCE;
 
-	private final HKEYByReference parent;
+	private HKEYByReference parent;
 	private final String name;
 	private final HKEYByReference hKey;
-	private RegSubKey[] subKeys;
+	private final HashMap<String, RegSubKey> subKeys;
+	private RegSubKey[] subKeysList;
 
+	private boolean attempted;
 	private boolean opened;
 	private boolean writable;
 
@@ -31,6 +35,7 @@ public class RegSubKey implements RegKey {
 		this.parent = parent;
 		this.name = name;
 		this.hKey = new HKEYByReference();
+		subKeys = new HashMap<>();
 	}
 
 	public void open(boolean write) throws Win32Exception {
@@ -48,20 +53,9 @@ public class RegSubKey implements RegKey {
 
 	@Override
 	public RegSubKey[] getSubKeys() {
-		if (subKeys != null) {
-			return subKeys;
-		}
-
-		subKeys = new RegSubKey[0];
-
-		open(false);
-		String[] subKeyNames = Advapi32Util.registryGetKeys(hKey.getValue());
-
-		subKeys = new RegSubKey[subKeyNames.length];
-		for (int i = 0; i < subKeys.length; i++) {
-			subKeys[i] = new RegSubKey(hKey, subKeyNames[i]);
-		}
-		return subKeys;
+		if (!attempted) 
+			refresh();
+		return subKeysList;
 	}
 
 	public String getName() {
@@ -69,15 +63,80 @@ public class RegSubKey implements RegKey {
 	}
 
 	public void close() {
+		attempted = false;
 		if (opened) {
-			Advapi32Util.registryCloseKey(hKey.getValue());
+			Win32Exception err = null;
+			try
+			{
+				Advapi32Util.registryCloseKey(hKey.getValue());
+			}
+			catch (Win32Exception e)
+			{
+				err = e;
+			}
+			
+			
+			for (RegSubKey sub : subKeys.values())
+			{
+				try
+				{
+					sub.close();
+				}
+				catch (Win32Exception e)
+				{
+					//Don't care about closing errors
+					e.printStackTrace();
+				}
+			}
+			
+			subKeys.clear();
+			subKeysList = null;
+			opened = writable = false;
+			if (err != null)
+				throw err;
 		}
-		subKeys = null;
-		opened = writable = false;
 	}
 
 	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		close();
+	}
+	
+	@Override
 	public String toString() {
 		return name;
+	}
+
+	@Override
+	public RegValue[] getValues() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	public void refresh() {
+		refresh(null);
+	}
+	
+	@Override
+	public void refresh(HKEY newHKey) {
+		attempted = true;
+		subKeysList = new RegSubKey[0];
+		
+		open(false);
+		String[] subKeyNames = Advapi32Util.registryGetKeys(hKey.getValue());
+		
+		subKeysList = new RegSubKey[subKeyNames.length];
+		for (int i = 0; i < subKeysList.length; i++) {
+			if (subKeys.containsKey(subKeyNames[i]))
+			{
+				subKeysList[i] = subKeys.get(subKeyNames[i]);
+				subKeysList[i].refresh();
+			}
+			else
+			{
+				subKeysList[i] = new RegSubKey(hKey, subKeyNames[i]);
+				subKeys.put(subKeyNames[i], subKeysList[i]);
+			}
+		}
 	}
 }

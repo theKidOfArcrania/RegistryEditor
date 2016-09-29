@@ -13,7 +13,10 @@ package registry;
 import com.sun.jna.platform.win32.Win32Exception;
 import java.util.function.Supplier;
 import javax.swing.JOptionPane;
+import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
@@ -22,7 +25,32 @@ import javax.swing.tree.TreePath;
  * @author henry.wang.1
  */
 public class RegistryEditor extends javax.swing.JFrame {
+	
+	private class ValuesTableModel extends AbstractTableModel
+	{
+		
+		
+		@Override
+		public int getRowCount() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
 
+		@Override
+		public int getColumnCount() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+		
+		public void updateValues()
+		{
+			
+		}
+	}
+	
 	private static final RegKeyRoot[] ROOT_KEYS = RegKeyRoot.values();
 	private static Object ROOT = new Object();
 
