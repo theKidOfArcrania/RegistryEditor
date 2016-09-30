@@ -12,7 +12,10 @@ package registry;
 
 import com.sun.jna.platform.win32.Win32Exception;
 import java.util.function.Supplier;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
@@ -112,6 +115,26 @@ public class RegistryEditor extends javax.swing.JFrame {
 	 * Creates new form RegistryViewer
 	 */
 	public RegistryEditor() {
+		Logger.getLogger("").addHandler(new Handler() {
+
+			@Override
+			public void close() throws SecurityException {
+			}
+
+			@Override
+			public void flush() {
+			}
+
+			@Override
+			public void publish(LogRecord record) {
+				if (record.getLevel().intValue() >= Level.SEVERE.intValue()) {
+					FileHandler JOptionPane
+					.showMessageDialog(RegistryEditor.this, record., getTitle(),
+						JOptionPane.ERROR_MESSAGE);
+				}
+			}
+
+		});
 		initComponents();
 	}
 
