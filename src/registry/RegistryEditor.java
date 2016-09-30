@@ -11,12 +11,13 @@
 package registry;
 
 import com.sun.jna.platform.win32.Win32Exception;
+import java.text.MessageFormat;
 import java.util.function.Supplier;
-import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -26,90 +27,6 @@ import javax.swing.tree.TreePath;
  * @author henry.wang.1
  */
 public class RegistryEditor extends javax.swing.JFrame {
-
-	private static final Logger LOG = Logger.getLogger(RegistryEditor.class.getName());
-
-	private static final RegKeyRoot[] ROOT_KEYS = RegKeyRoot.values();
-	private static Object ROOT = new Object();
-
-	private <R> R tryAction(Supplier<R> action) {
-		return tryAction(action, null);
-	}
-
-	private <R> R tryAction(Supplier<R> action, R defaultVal) {
-		try {
-			return action.get();
-		} catch (Win32Exception e) {
-			LOG.log(Level.SEVERE, "Error " + (e.getHR().intValue() & 0xFFFF)
-				+ "(" + e.getMessage() + ")", e);
-			return defaultVal;
-		} catch (Exception e) {
-			LOG.log(Level.SEVERE, "Unexpected error: " + e.getMessage(), e);
-			return defaultVal;
-		}
-	}
-
-	private class RegKeyModel implements TreeModel {
-
-		@Override
-		public Object getRoot() {
-			return ROOT;
-		}
-
-		@Override
-		public Object getChild(Object o, int i) {
-			if (o == ROOT) {
-				return ROOT_KEYS[i];
-			} else {
-				return tryAction(() -> ((RegKey) o).getSubKeys()[i]);
-			}
-		}
-
-		@Override
-		public int getChildCount(Object o) {
-			if (o == ROOT) {
-				return ROOT_KEYS.length;
-			} else {
-				return tryAction(() -> ((RegKey) o).getSubKeys().length, 0);
-			}
-		}
-
-		@Override
-		public boolean isLeaf(Object o) {
-			return false;
-		}
-
-		@Override
-		public void valueForPathChanged(TreePath tp, Object o) {
-
-		}
-
-		@Override
-		public int getIndexOfChild(Object parent, Object child) {
-			if (parent == ROOT) {
-				return ((RegKeyRoot) child).ordinal();
-			} else {
-				RegKey[] subKeys = tryAction(() -> ((RegKey) parent).getSubKeys());
-				for (int i = 0; i < subKeys.length; i++) {
-					if (subKeys[i] == child) {
-						return i;
-					}
-				}
-				return -1;
-			}
-		}
-
-		@Override
-		public void addTreeModelListener(TreeModelListener tl) {
-			//Does nothing yet
-		}
-
-		@Override
-		public void removeTreeModelListener(TreeModelListener tl) {
-			//Does nothing yet
-		}
-
-	}
 
 	/**
 	 * Creates new form RegistryViewer
@@ -128,12 +45,14 @@ public class RegistryEditor extends javax.swing.JFrame {
 			@Override
 			public void publish(LogRecord record) {
 				if (record.getLevel().intValue() >= Level.SEVERE.intValue()) {
-					FileHandler JOptionPane
-					.showMessageDialog(RegistryEditor.this, record., getTitle(),
-						JOptionPane.ERROR_MESSAGE);
+					String msg = MessageFormat.format(
+							record.getMessage(), record.getParameters());
+					JOptionPane.showMessageDialog(RegistryEditor.this, msg, 
+							getTitle(), JOptionPane.ERROR_MESSAGE);
+					if (record.getThrown() != null)
+						record.getThrown().printStackTrace();
 				}
 			}
-
 		});
 		initComponents();
 	}

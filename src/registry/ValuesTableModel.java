@@ -14,7 +14,8 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author Henry
  */
-public class ValuesTableModel extends AbstractTableModel {
+public class ValuesTableModel extends AbstractTableModel 
+{
 
 	private static final Logger LOG = Logger.getLogger(ValuesTableModel.class.getName());
 
@@ -22,11 +23,13 @@ public class ValuesTableModel extends AbstractTableModel {
 		"Name", "Type", "Data"
 	};
 
-	private final RegKey key;
+	private RegKey key;
 	private RegValue[] values = null;
 
 	public ValuesTableModel(RegKey key) {
 		this.key = key;
+		if (key != null)
+			updateValues();
 	}
 
 	@Override
@@ -36,7 +39,7 @@ public class ValuesTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		return values.length;
+		return values == null ? 0 : values.length;
 	}
 
 	@Override
@@ -46,17 +49,35 @@ public class ValuesTableModel extends AbstractTableModel {
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		if (values == null)
+			throw new ArrayIndexOutOfBoundsException();
+		
+		RegValue val = values[rowIndex];
+		val.
+		switch (columnIndex)
+		{
+		case 0:
+			
+		case 1:
+		case 2:
+			
+		default:
+			throw new ArrayIndexOutOfBoundsException();
+		}
 	}
 
 	public void updateValues() {
+		updateValues(key);
+	}
+	public void updateValues(RegKey newKey) {
 		try {
 			int oldSize = values.length;
 			RegValue[] loaded = key.getValues();
-
+			key = newKey;
+			
 			values = new RegValue[0];
 			fireTableRowsDeleted(0, oldSize - 1);
-
+			
 			values = loaded;
 			fireTableRowsInserted(0, values.length - 1);
 		} catch (Win32Exception e) {
@@ -64,6 +85,7 @@ public class ValuesTableModel extends AbstractTableModel {
 				+ "(" + e.getMessage() + ")", e);
 		} catch (Exception e) {
 			LOG.log(Level.SEVERE, "Unexpected error: " + e.getMessage(), e);
+			System.exit(1);
 		}
 	}
 }
