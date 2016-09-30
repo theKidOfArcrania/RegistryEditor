@@ -21,28 +21,77 @@ public class RegSubKey implements RegKey {
 
 	private static final Advapi32 REGS = Advapi32.INSTANCE;
 
-	private HKEYByReference parent;
-	private final String name;
+	private boolean attempted;
 	private final HKEYByReference hKey;
+	private final String name;
+	private boolean opened;
+	private RegKey parent;
 	private final HashMap<String, RegSubKey> subKeys;
 	private RegSubKey[] subKeysList;
-
-	private boolean attempted;
-	private boolean opened;
 	private boolean writable;
 
-	public RegSubKey(HKEYByReference parent, String name) {
+	public RegSubKey(RegKey parent, String name) {
 		this.parent = parent;
 		this.name = name;
 		this.hKey = new HKEYByReference();
 		subKeys = new HashMap<>();
 	}
 
+	public void close() {
+		attempted = false;
+		if (opened) {
+			Win32Exception err = null;
+			try {
+				Advapi32Util.registryCloseKey(hKey.getValue());
+			} catch (Win32Exception e) {
+				err = e;
+			}
+
+			for (RegSubKey sub : subKeys.values()) {
+				try {
+					sub.close();
+				} catch (Win32Exception e) {
+					//Don't care about closing errors
+					e.printStackTrace();
+				}
+			}
+
+			subKeys.clear();
+			subKeysList = null;
+			opened = writable = false;
+			if (err != null) {
+				throw err;
+			}
+		}
+	}
+
+	@Override
+	public HKEY getHKey() {
+		return hKey.getValue();
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public RegSubKey[] getSubKeys() {
+		if (!attempted) {
+			refresh();
+		}
+		return subKeysList;
+	}
+
+	@Override
+	public RegValue[] getValues() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
 	public void open(boolean write) throws Win32Exception {
 		if (opened && !write || opened && write && writable) {
 			return;
 		}
-		int rc = REGS.RegOpenKeyEx(parent.getValue(), name, 0, (write
+		int rc = REGS.RegOpenKeyEx(parent.getHKey(), name, 0, (write
 			? WinNT.KEY_ALL_ACCESS : WinNT.KEY_READ), hKey);
 		if (rc != W32Errors.ERROR_SUCCESS) {
 			throw new Win32Exception(rc);
@@ -52,91 +101,33 @@ public class RegSubKey implements RegKey {
 	}
 
 	@Override
-	public RegSubKey[] getSubKeys() {
-		if (!attempted) 
-			refresh();
-		return subKeysList;
-	}
+	public void refresh() {
+		attempted = true;
+		subKeysList = new RegSubKey[0];
 
-	public String getName() {
-		return name;
-	}
+		open(false);
+		String[] subKeyNames = Advapi32Util.registryGetKeys(hKey.getValue());
 
-	public void close() {
-		attempted = false;
-		if (opened) {
-			Win32Exception err = null;
-			try
-			{
-				Advapi32Util.registryCloseKey(hKey.getValue());
+		subKeysList = new RegSubKey[subKeyNames.length];
+		for (int i = 0; i < subKeysList.length; i++) {
+			if (subKeys.containsKey(subKeyNames[i])) {
+				subKeysList[i] = subKeys.get(subKeyNames[i]);
+				subKeysList[i].refresh();
+			} else {
+				subKeysList[i] = new RegSubKey(this, subKeyNames[i]);
+				subKeys.put(subKeyNames[i], subKeysList[i]);
 			}
-			catch (Win32Exception e)
-			{
-				err = e;
-			}
-			
-			
-			for (RegSubKey sub : subKeys.values())
-			{
-				try
-				{
-					sub.close();
-				}
-				catch (Win32Exception e)
-				{
-					//Don't care about closing errors
-					e.printStackTrace();
-				}
-			}
-			
-			subKeys.clear();
-			subKeysList = null;
-			opened = writable = false;
-			if (err != null)
-				throw err;
 		}
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
-		close();
-	}
-	
 	@Override
 	public String toString() {
 		return name;
 	}
 
 	@Override
-	public RegValue[] getValues() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	public void refresh() {
-		refresh(null);
-	}
-	
-	@Override
-	public void refresh(HKEY newHKey) {
-		attempted = true;
-		subKeysList = new RegSubKey[0];
-		
-		open(false);
-		String[] subKeyNames = Advapi32Util.registryGetKeys(hKey.getValue());
-		
-		subKeysList = new RegSubKey[subKeyNames.length];
-		for (int i = 0; i < subKeysList.length; i++) {
-			if (subKeys.containsKey(subKeyNames[i]))
-			{
-				subKeysList[i] = subKeys.get(subKeyNames[i]);
-				subKeysList[i].refresh();
-			}
-			else
-			{
-				subKeysList[i] = new RegSubKey(hKey, subKeyNames[i]);
-				subKeys.put(subKeyNames[i], subKeysList[i]);
-			}
-		}
+	protected void finalize() throws Throwable {
+		super.finalize();
+		close();
 	}
 }

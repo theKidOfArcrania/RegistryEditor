@@ -5,6 +5,8 @@
  */
 package registry;
 
+import com.sun.jna.platform.win32.WinReg.HKEY;
+
 /**
  *
  * @author henry.wang.1
@@ -14,6 +16,8 @@ public interface RegKey {
 	RegSubKey[] getSubKeys();
 
 	RegValue[] getValues();
-	
+
 	void refresh();
+
+	HKEY getHKey();
 }
