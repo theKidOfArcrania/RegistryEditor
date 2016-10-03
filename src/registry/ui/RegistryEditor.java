@@ -8,7 +8,7 @@
  *
  * Created on Sep 26, 2016, 10:05:20 AM
  */
-package registry;
+package registry.ui;
 
 import com.sun.jna.platform.win32.Win32Exception;
 import java.text.MessageFormat;

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package registry;
+package registry.ui;
 
 import com.sun.jna.platform.win32.Win32Exception;
 import java.util.function.Supplier;
@@ -12,6 +12,8 @@ import java.util.logging.Logger;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import registry.RegKey;
+import registry.RegKeyRoot;
 
 /**
  *

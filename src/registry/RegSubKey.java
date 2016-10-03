@@ -4,7 +4,6 @@
  */
 package registry;
 
-import com.sun.jna.platform.win32.Advapi32;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.W32Errors;
 import com.sun.jna.platform.win32.Win32Exception;
@@ -19,22 +18,27 @@ import java.util.HashMap;
  */
 public class RegSubKey implements RegKey {
 
-	private static final Advapi32 REGS = Advapi32.INSTANCE;
-
 	private boolean attempted;
 	private final HKEYByReference hKey;
 	private final String name;
 	private boolean opened;
 	private RegKey parent;
-	private final HashMap<String, RegSubKey> subKeys;
-	private RegSubKey[] subKeysList;
+	
 	private boolean writable;
 
-	public RegSubKey(RegKey parent, String name) {
+	private RegSubKey[] subKeysList;
+	private final HashMap<String, RegSubKey> subKeys;
+	private RegValue[] valuesList;
+	private final HashMap<String, RegValue> values;
+	
+	RegSubKey(RegKey parent, String name) {
 		this.parent = parent;
 		this.name = name;
 		this.hKey = new HKEYByReference();
 		subKeys = new HashMap<>();
+		subKeysList = new RegSubKey[0];
+		valuesList = new RegValue[0];
+		values = new HashMap<>();
 	}
 
 	public void close() {
@@ -67,6 +71,8 @@ public class RegSubKey implements RegKey {
 
 	@Override
 	public HKEY getHKey() {
+		if (!attempted)
+			refresh();
 		return hKey.getValue();
 	}
 
@@ -103,21 +109,35 @@ public class RegSubKey implements RegKey {
 	@Override
 	public void refresh() {
 		attempted = true;
-		subKeysList = new RegSubKey[0];
-
 		open(false);
+		
+		//Load sub keys
 		String[] subKeyNames = Advapi32Util.registryGetKeys(hKey.getValue());
-
-		subKeysList = new RegSubKey[subKeyNames.length];
-		for (int i = 0; i < subKeysList.length; i++) {
+		RegSubKey[] keysLoading = new RegSubKey[subKeyNames.length];
+		for (int i = 0; i < keysLoading.length; i++) {
 			if (subKeys.containsKey(subKeyNames[i])) {
-				subKeysList[i] = subKeys.get(subKeyNames[i]);
-				subKeysList[i].refresh();
+				keysLoading[i] = subKeys.get(subKeyNames[i]);
+				keysLoading[i].refresh();
 			} else {
-				subKeysList[i] = new RegSubKey(this, subKeyNames[i]);
-				subKeys.put(subKeyNames[i], subKeysList[i]);
+				keysLoading[i] = new RegSubKey(this, subKeyNames[i]);
+				subKeys.put(subKeyNames[i], keysLoading[i]);
 			}
 		}
+		subKeysList = keysLoading;
+		
+		//Load values
+		String[] valueNames = RegKey.getValueNames(hKey.getValue());
+		RegValue[] valuesLoading = new RegValue[valueNames.length];
+		for (int i = 0; i < valuesLoading.length; i++) {
+			if (values.containsKey(valueNames[i])) {
+				valuesLoading[i] = values.get(valueNames[i]);
+				valuesLoading[i].refresh();
+			} else {
+				valuesLoading[i] = new RegValue(this, valueNames[i]);
+				values.put(valueNames[i], valuesLoading[i]);
+			}
+		}
+		valuesList = valuesLoading;
 	}
 
 	@Override

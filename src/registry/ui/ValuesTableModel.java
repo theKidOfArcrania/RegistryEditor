@@ -3,12 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package registry;
+package registry.ui;
 
 import com.sun.jna.platform.win32.Win32Exception;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.AbstractTableModel;
+import registry.RegKey;
+import registry.RegValue;
 
 /**
  *
@@ -53,14 +55,14 @@ public class ValuesTableModel extends AbstractTableModel
 			throw new ArrayIndexOutOfBoundsException();
 		
 		RegValue val = values[rowIndex];
-		val.
 		switch (columnIndex)
 		{
-		case 0:
-			
-		case 1:
-		case 2:
-			
+		case 0: //Value name
+			return val.getValueName();
+		case 1: //Value type
+			return val.getValueType();
+		case 2: //Value
+			return val.getValue();
 		default:
 			throw new ArrayIndexOutOfBoundsException();
 		}
