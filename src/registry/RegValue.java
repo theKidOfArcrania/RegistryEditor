@@ -17,15 +17,16 @@ import com.sun.jna.ptr.IntByReference;
  */
 public class RegValue 
 {
-	public enum RegType
+	public enum RegValueType
 	{
 		REG_BINARY, REG_DWORD, REG_EXPAND_SZ, REG_MULTI_SZ, REG_NONE, REG_QWORD, REG_SZ;
 	}
 	private static final Advapi32 REGS = Advapi32.INSTANCE;
 	
+	private boolean attempted = false;
 	private final RegKey key;
 	private final String name;
-	private RegType type;
+	private RegValueType type;
 	private Object value;
 	
 	RegValue(RegKey key, String name) {
@@ -37,13 +38,17 @@ public class RegValue
 		return name;
 	}
 	
-	public RegType getValueType()
+	public RegValueType getValueType()
 	{
+		if (!attempted)
+			refresh();
 		return type;
 	}
 	
 	public Object getValue()
 	{
+		if (!attempted)
+			refresh();
 		return value;
 	}
 	
@@ -54,31 +59,31 @@ public class RegValue
 		switch (lpType.getValue())
 		{
 			case WinNT.REG_BINARY:
-				type = RegType.REG_BINARY;
+				type = RegValueType.REG_BINARY;
 				value = Advapi32Util.registryGetBinaryValue(key.getHKey(), name);
 				break;
 			case WinNT.REG_DWORD:
-				type = RegType.REG_DWORD;
+				type = RegValueType.REG_DWORD;
 				value = Advapi32Util.registryGetIntValue(key.getHKey(), name);
 				break;
 			case WinNT.REG_EXPAND_SZ:
-				type = RegType.REG_EXPAND_SZ;
+				type = RegValueType.REG_EXPAND_SZ;
 				value = Advapi32Util.registryGetStringValue(key.getHKey(), name);
 				break;
 			case WinNT.REG_MULTI_SZ:
-				type = RegType.REG_MULTI_SZ;
+				type = RegValueType.REG_MULTI_SZ;
 				value = Advapi32Util.registryGetStringArray(key.getHKey(), name);
 				break;
 			case WinNT.REG_NONE:
-				type = RegType.REG_NONE;
+				type = RegValueType.REG_NONE;
 				value = null;
 				break;
 			case WinNT.REG_QWORD:
-				type = RegType.REG_SZ;
+				type = RegValueType.REG_SZ;
 				value = Advapi32Util.registryGetLongValue(key.getHKey(), name);
 				break;
 			case WinNT.REG_SZ:
-				type = RegType.REG_SZ;
+				type = RegValueType.REG_SZ;
 				value = Advapi32Util.registryGetStringValue(key.getHKey(), name);
 		}
 	}
