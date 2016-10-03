@@ -34,7 +34,7 @@ public class RegKeyModel implements TreeModel {
 			return action.get();
 		} catch (Win32Exception e) {
 			LOG.log(Level.SEVERE, "Error " + (e.getHR().intValue() & 0xFFFF)
-				+ "(" + e.getMessage() + ")", e);
+				+ " (" + e.getMessage() + ")", e);
 			return defaultVal;
 		} catch (Exception e) {
 			LOG.log(Level.SEVERE, "Unexpected error: " + e.getMessage(), e);

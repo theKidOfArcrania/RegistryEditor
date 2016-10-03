@@ -84,7 +84,7 @@ public class ValuesTableModel extends AbstractTableModel
 			fireTableRowsInserted(0, values.length - 1);
 		} catch (Win32Exception e) {
 			LOG.log(Level.SEVERE, "Error " + (e.getHR().intValue() & 0xFFFF)
-				+ "(" + e.getMessage() + ")", e);
+				+ " (" + e.getMessage() + ")", e);
 		} catch (Exception e) {
 			LOG.log(Level.SEVERE, "Unexpected error: " + e.getMessage(), e);
 			System.exit(1);
