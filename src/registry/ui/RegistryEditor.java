@@ -10,12 +10,14 @@
  */
 package registry.ui;
 
+import java.awt.Color;
 import java.text.MessageFormat;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import registry.RegKey;
 
 /**
  *
@@ -65,6 +67,7 @@ public class RegistryEditor extends javax.swing.JFrame {
         srpRegKeys = new javax.swing.JScrollPane();
         treRegKeys = new javax.swing.JTree();
         srpRegValues = new javax.swing.JScrollPane();
+        valuesModel = new ValuesTableModel(null);
         tblRegValues = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -77,38 +80,19 @@ public class RegistryEditor extends javax.swing.JFrame {
         treRegKeys.setModel(new RegKeyModel());
         treRegKeys.setRootVisible(false);
         treRegKeys.setShowsRootHandles(true);
+        treRegKeys.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                treRegKeysValueChanged(evt);
+            }
+        });
         srpRegKeys.setViewportView(treRegKeys);
 
         splRegEditing.setLeftComponent(srpRegKeys);
 
         srpRegValues.setBackground(new java.awt.Color(255, 255, 255));
+        srpRegValues.getViewport().setBackground(Color.WHITE);
 
-        tblRegValues.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
-            },
-            new String [] {
-                "Name", "Type", "Data"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.Object.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
+        tblRegValues.setModel(valuesModel);
         tblRegValues.setGridColor(new java.awt.Color(204, 204, 204));
         tblRegValues.setSelectionBackground(java.awt.SystemColor.activeCaption);
         tblRegValues.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
@@ -121,6 +105,15 @@ public class RegistryEditor extends javax.swing.JFrame {
 
         setBounds(0, 0, 826, 458);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void treRegKeysValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treRegKeysValueChanged
+        Object key = evt.getPath().getLastPathComponent();
+		if (key instanceof RegKey)
+		{
+			ValuesTableModel model = (ValuesTableModel)(tblRegValues.getModel());
+			model.updateValues((RegKey)key);
+		}
+    }//GEN-LAST:event_treRegKeysValueChanged
 
 	/**
 	 * @param args the command line arguments
@@ -168,6 +161,7 @@ public class RegistryEditor extends javax.swing.JFrame {
     private javax.swing.JSplitPane splRegEditing;
     private javax.swing.JScrollPane srpRegKeys;
     private javax.swing.JScrollPane srpRegValues;
+    private ValuesTableModel valuesModel;
     private javax.swing.JTable tblRegValues;
     private javax.swing.JTree treRegKeys;
     // End of variables declaration//GEN-END:variables

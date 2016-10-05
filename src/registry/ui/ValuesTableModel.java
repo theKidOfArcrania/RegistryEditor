@@ -26,7 +26,7 @@ public class ValuesTableModel extends AbstractTableModel
 	};
 
 	private RegKey key;
-	private RegValue[] values = null;
+	private RegValue[] values = new RegValue[0];
 
 	public ValuesTableModel(RegKey key) {
 		this.key = key;
@@ -74,14 +74,18 @@ public class ValuesTableModel extends AbstractTableModel
 	public void updateValues(RegKey newKey) {
 		try {
 			int oldSize = values.length;
-			RegValue[] loaded = key.getValues();
+			
+			RegValue[] loaded = newKey == null ? new RegValue[0] : 
+					newKey.getValues();
 			key = newKey;
 			
 			values = new RegValue[0];
-			fireTableRowsDeleted(0, oldSize - 1);
+			if (oldSize > 0)
+				fireTableRowsDeleted(0, oldSize - 1);
 			
 			values = loaded;
-			fireTableRowsInserted(0, values.length - 1);
+			if (values.length > 0)
+				fireTableRowsInserted(0, values.length - 1);
 		} catch (Win32Exception e) {
 			LOG.log(Level.SEVERE, "Error " + (e.getHR().intValue() & 0xFFFF)
 				+ " (" + e.getMessage() + ")", e);

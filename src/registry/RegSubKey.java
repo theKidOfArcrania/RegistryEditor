@@ -90,7 +90,9 @@ public class RegSubKey implements RegKey {
 
 	@Override
 	public RegValue[] getValues() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		if (!attempted)
+			refresh();
+		return valuesList;
 	}
 
 	public void open(boolean write) throws Win32Exception {

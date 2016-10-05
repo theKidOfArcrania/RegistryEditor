@@ -24,10 +24,11 @@ public interface RegKey {
 		Advapi32Util.InfoKey info = Advapi32Util.registryQueryInfoKey(hKey, 0);
 		String[] valueNames = new String[info.lpcValues.getValue()];
 		
-		char[] lpValueName = new char[info.lpcMaxValueNameLen.getValue()];
+		char[] lpValueName = new char[info.lpcMaxValueNameLen.getValue() + 1];
 		IntByReference lpcchValueName = new IntByReference(0);
 		for (int i = 0; i < valueNames.length; i++)
 		{
+			lpcchValueName.setValue(lpValueName.length);
 			int status = REGS.RegEnumValue(hKey, i, lpValueName, lpcchValueName, 
 					null, null, null, null);
 			if (status != WinError.ERROR_MORE_DATA && 
@@ -48,4 +49,5 @@ public interface RegKey {
 	void refresh();
 
 	HKEY getHKey();
+	
 }

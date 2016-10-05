@@ -22,6 +22,18 @@ public class RegValue
 		REG_BINARY("Binary"), REG_DWORD("DWORD"), REG_EXPAND_SZ("String"), 
 		REG_MULTI_SZ("Strings"), REG_NONE("None"), REG_QWORD("QWORD"), 
 		REG_SZ("String");
+		
+		private final String shortName;
+
+		private RegValueType(String shortName) {
+			this.shortName = shortName;
+		}
+		
+		public String getShortName() {
+			return shortName;
+		}
+		
+		
 	}
 	private static final Advapi32 REGS = Advapi32.INSTANCE;
 	

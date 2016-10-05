@@ -6,6 +6,7 @@
 package registry.ui;
 
 import java.awt.Dialog.ModalityType;
+import java.awt.GridLayout;
 import java.awt.Window;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -116,9 +117,11 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
 		txtValueData.setText(val.toString());
 		
 		canceled = true;
-
-		JDialog dlg = new JDialog(owner, "Edit " + type.getSimpleName(), 
+		JDialog dlg = new JDialog(owner, "Edit " + type.getShortName(), 
 				ModalityType.APPLICATION_MODAL);
+		dlg.getContentPane().setLayout(new GridLayout(1, 1));
+		dlg.add(dlg);
+		dlg.setVisible(true);
 		
 		if (canceled)
 			return null;
