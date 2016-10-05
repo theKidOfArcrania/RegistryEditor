@@ -5,7 +5,9 @@
  */
 package registry.ui;
 
+import java.awt.Dialog.ModalityType;
 import java.awt.Window;
+import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -102,6 +104,11 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
 		}
 	}
 	
+	public RegIntegerEditor()
+	{
+		initComponents();
+	}
+	
 	@Override
 	public Object showEditor(Window owner, String name, RegValueType type, Object val) {
 		this.type = type;
@@ -110,7 +117,8 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
 		
 		canceled = true;
 
-		//SHOW
+		JDialog dlg = new JDialog(owner, "Edit " + type.getSimpleName(), 
+				ModalityType.APPLICATION_MODAL);
 		
 		if (canceled)
 			return null;
@@ -140,7 +148,7 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         btnOkay = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
 
-        getContentPane().setLayout(new java.awt.GridBagLayout());
+        setLayout(new java.awt.GridBagLayout());
 
         lblValueName.setText("Value Name:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -149,7 +157,7 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
-        getContentPane().add(lblValueName, gridBagConstraints);
+        add(lblValueName, gridBagConstraints);
 
         txtValueName.setEditable(false);
         txtValueName.setText("<NAME>");
@@ -161,7 +169,7 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
-        getContentPane().add(txtValueName, gridBagConstraints);
+        add(txtValueName, gridBagConstraints);
 
         lblValueData.setText("Value Data:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -170,7 +178,7 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
-        getContentPane().add(lblValueData, gridBagConstraints);
+        add(lblValueData, gridBagConstraints);
 
         txtValueData.setText("0");
         txtValueData.setMinimumSize(new java.awt.Dimension(100, 20));
@@ -182,7 +190,7 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         gridBagConstraints.anchor = java.awt.GridBagConstraints.PAGE_START;
         gridBagConstraints.weightx = 0.1;
         gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
-        getContentPane().add(txtValueData, gridBagConstraints);
+        add(txtValueData, gridBagConstraints);
 
         pnlBase.setBorder(javax.swing.BorderFactory.createTitledBorder("Base"));
         pnlBase.setMinimumSize(new java.awt.Dimension(150, 69));
@@ -203,7 +211,7 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(10, 0, 0, 10);
-        getContentPane().add(pnlBase, gridBagConstraints);
+        add(pnlBase, gridBagConstraints);
 
         pnlButtons.setLayout(new java.awt.GridLayout(1, 0, 5, 0));
 
@@ -229,9 +237,7 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
         gridBagConstraints.insets = new java.awt.Insets(10, 0, 10, 10);
-        getContentPane().add(pnlButtons, gridBagConstraints);
-
-        pack();
+        add(pnlButtons, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
@@ -241,48 +247,6 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
     private void btnOkayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOkayActionPerformed
         canceled = false;
     }//GEN-LAST:event_btnOkayActionPerformed
-
-	/**
-	 * @param args the command line arguments
-	 */
-	public static void main(String args[]) {
-		/* Set the Nimbus look and feel */
-		//<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-		/* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-		 */
-		try {
-			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					javax.swing.UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (ClassNotFoundException ex) {
-			java.util.logging.Logger.getLogger(RegIntegerEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (InstantiationException ex) {
-			java.util.logging.Logger.getLogger(RegIntegerEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (IllegalAccessException ex) {
-			java.util.logging.Logger.getLogger(RegIntegerEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (javax.swing.UnsupportedLookAndFeelException ex) {
-			java.util.logging.Logger.getLogger(RegIntegerEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		}
-		//</editor-fold>
-
-		/* Create and display the dialog */
-		java.awt.EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				RegIntegerEditor dialog = new RegIntegerEditor(new javax.swing.JFrame(), true);
-				dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-					@Override
-					public void windowClosing(java.awt.event.WindowEvent e) {
-						System.exit(0);
-					}
-				});
-				dialog.setVisible(true);
-			}
-		});
-	}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;

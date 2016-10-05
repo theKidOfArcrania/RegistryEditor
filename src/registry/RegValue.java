@@ -19,7 +19,9 @@ public class RegValue
 {
 	public enum RegValueType
 	{
-		REG_BINARY, REG_DWORD, REG_EXPAND_SZ, REG_MULTI_SZ, REG_NONE, REG_QWORD, REG_SZ;
+		REG_BINARY("Binary"), REG_DWORD("DWORD"), REG_EXPAND_SZ("String"), 
+		REG_MULTI_SZ("Strings"), REG_NONE("None"), REG_QWORD("QWORD"), 
+		REG_SZ("String");
 	}
 	private static final Advapi32 REGS = Advapi32.INSTANCE;
 	
