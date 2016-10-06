@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.table.TableColumnModel;
 import registry.RegKey;
 
 /**
@@ -90,13 +91,24 @@ public class RegistryEditor extends javax.swing.JFrame {
         splRegEditing.setLeftComponent(srpRegKeys);
 
         srpRegValues.setBackground(new java.awt.Color(255, 255, 255));
-        srpRegValues.getViewport().setBackground(Color.WHITE);
 
         tblRegValues.setModel(valuesModel);
+        tblRegValues.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
+        tblRegValues.setFillsViewportHeight(true);
         tblRegValues.setGridColor(new java.awt.Color(204, 204, 204));
+        tblRegValues.setMaximumSize(new java.awt.Dimension(1000000000, 1000000000));
+        tblRegValues.setRowMargin(5);
         tblRegValues.setSelectionBackground(java.awt.SystemColor.activeCaption);
         tblRegValues.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         tblRegValues.setShowHorizontalLines(false);
+        tblRegValues.setShowVerticalLines(false);
+        TableColumnModel model = tblRegValues.getColumnModel();
+        model.getColumn(0).setMinWidth(100);
+        model.getColumn(0).setPreferredWidth(100);
+        model.getColumn(1).setMinWidth(100);
+        model.getColumn(1).setPreferredWidth(100);
+        model.getColumn(2).setMinWidth(100);
+        model.getColumn(2).setPreferredWidth(300);
         srpRegValues.setViewportView(tblRegValues);
 
         splRegEditing.setRightComponent(srpRegValues);
@@ -144,7 +156,6 @@ public class RegistryEditor extends javax.swing.JFrame {
 		} catch (javax.swing.UnsupportedLookAndFeelException ex) {
 			java.util.logging.Logger.getLogger(RegistryEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 		}
-		//</editor-fold>
 		//</editor-fold>
 
 		/*
