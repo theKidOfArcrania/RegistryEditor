@@ -10,45 +10,141 @@
  */
 package registry.ui;
 
-import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import registry.RegKey;
+import registry.RegValue;
+
 
 /**
  *
  * @author henry.wang.1
  */
-public class RegistryEditor extends javax.swing.JFrame {
+public class RegistryEditor extends javax.swing.JFrame
+{
+
+	private static class PaddedCellRenderer extends DefaultTableCellRenderer
+	{
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+		{
+			super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			setBorder(new EmptyBorder(0, 5, 0, 5));
+			return this;
+		}
+
+	}
+
+	private static class RegValueNameRenderer extends PaddedCellRenderer
+	{
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+		{
+			super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			if (value instanceof RegValue)
+			{
+				RegValue regVal = (RegValue)value;
+				
+				//Set text
+				String name = regVal.getValueName();
+				if (name == null || name.isEmpty())
+					setText("(Default)");
+				else
+					setText(regVal.getValueName());
+				
+				//Set icon
+				setIcon(regVal.getValueType().getIcon());
+				setHorizontalTextPosition(SwingConstants.RIGHT);
+				setVerticalTextPosition(SwingConstants.CENTER);
+			}
+			return this;
+		}
+
+		
+	}
+	
+	private static class RegValueRenderer extends PaddedCellRenderer
+	{
+
+		@Override
+		protected void setValue(Object value)
+		{
+			if (value == null)
+				setText("(value not set)");
+			else if (value instanceof Integer)
+				setText(String.format("0x%1$08x (%1$d)", value));
+			else if (value instanceof Long)
+				setText(String.format("0x%1$016x (%1$d)", value));
+			else if (value instanceof byte[])
+			{
+				byte[] bin = (byte[]) value;
+				int len = Math.min(bin.length, 100);
+				StringBuilder text = new StringBuilder((len + 1) * 3);
+				for (int i = 0; i < len; i++)
+				{
+					if (i >= 0)
+						text.append(' ');
+					text.append(Integer.toHexString(bin[i] & 0xFF));
+				}
+
+				if (len < bin.length)
+					text.append("...");
+				setText(text.toString());
+			} else if (value instanceof String)
+				setText((String) value);
+			else if (value instanceof String[])
+				setText(Arrays.toString((String[]) value));
+			else
+				setText(value.toString());
+		}
+
+	}
 
 	/**
 	 * Creates new form RegistryViewer
 	 */
-	public RegistryEditor() {
-		Logger.getLogger("").addHandler(new Handler() {
+	public RegistryEditor()
+	{
+		Logger.getLogger("").addHandler(new Handler()
+		{
 
 			@Override
-			public void close() throws SecurityException {
+			public void close() throws SecurityException
+			{
 			}
 
 			@Override
-			public void flush() {
+			public void flush()
+			{
 			}
 
 			@Override
-			public void publish(LogRecord record) {
-				if (record.getLevel().intValue() >= Level.SEVERE.intValue()) {
+			public void publish(LogRecord record)
+			{
+				if (record.getLevel().intValue() >= Level.SEVERE.intValue())
+				{
 					String msg = MessageFormat.format(
-							record.getMessage(), record.getParameters());
-					JOptionPane.showMessageDialog(RegistryEditor.this, msg, 
-							getTitle(), JOptionPane.ERROR_MESSAGE);
+						record.getMessage(), record.getParameters());
+					JOptionPane.showMessageDialog(RegistryEditor.this, msg,
+						getTitle(), JOptionPane.ERROR_MESSAGE);
 					if (record.getThrown() != null)
+					{
 						record.getThrown().printStackTrace();
+					}
 				}
 			}
 		});
@@ -62,7 +158,8 @@ public class RegistryEditor extends javax.swing.JFrame {
 	 */
 	@SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         splRegEditing = new javax.swing.JSplitPane();
         srpRegKeys = new javax.swing.JScrollPane();
@@ -70,19 +167,59 @@ public class RegistryEditor extends javax.swing.JFrame {
         srpRegValues = new javax.swing.JScrollPane();
         valuesModel = new ValuesTableModel(null);
         tblRegValues = new javax.swing.JTable();
+        menuBar = new javax.swing.JMenuBar();
+        mnuFile = new javax.swing.JMenu();
+        mnuFileImport = new javax.swing.JMenuItem();
+        mnuFileExport = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        mnuFileExit = new javax.swing.JMenuItem();
+        mnuEdit = new javax.swing.JMenu();
+        mnuEditNew = new javax.swing.JMenu();
+        mnuEditNewKey = new javax.swing.JMenuItem();
+        mnuEditNewSep = new javax.swing.JPopupMenu.Separator();
+        mnuEditNewString = new javax.swing.JMenuItem();
+        mnuEditNewBinary = new javax.swing.JMenuItem();
+        mnuEditNewDword = new javax.swing.JMenuItem();
+        mnuEditNewQword = new javax.swing.JMenuItem();
+        mnuEditNewMultiString = new javax.swing.JMenuItem();
+        mnuEditNewExtString = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Registry Editor UnBlocked");
+        setIconImage(getToolkit().createImage(ClassLoader.getSystemResource("registry/res/ICON.png"))
+        );
         getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
         srpRegKeys.setMinimumSize(new java.awt.Dimension(200, 200));
-        srpRegKeys.setPreferredSize(new java.awt.Dimension(200, 200));
+        srpRegKeys.setPreferredSize(new java.awt.Dimension(300, 200));
 
         treRegKeys.setModel(new RegKeyModel());
         treRegKeys.setRootVisible(false);
         treRegKeys.setShowsRootHandles(true);
-        treRegKeys.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+        treRegKeys.addTreeExpansionListener(new javax.swing.event.TreeExpansionListener()
+        {
+            public void treeCollapsed(javax.swing.event.TreeExpansionEvent evt)
+            {
+            }
+            public void treeExpanded(javax.swing.event.TreeExpansionEvent evt)
+            {
+                treRegKeysTreeExpanded(evt);
+            }
+        });
+        treRegKeys.addTreeWillExpandListener(new javax.swing.event.TreeWillExpandListener()
+        {
+            public void treeWillCollapse(javax.swing.event.TreeExpansionEvent evt)throws javax.swing.tree.ExpandVetoException
+            {
+            }
+            public void treeWillExpand(javax.swing.event.TreeExpansionEvent evt)throws javax.swing.tree.ExpandVetoException
+            {
+                treRegKeysTreeWillExpand(evt);
+            }
+        });
+        treRegKeys.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener()
+        {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt)
+            {
                 treRegKeysValueChanged(evt);
             }
         });
@@ -95,42 +232,146 @@ public class RegistryEditor extends javax.swing.JFrame {
         tblRegValues.setModel(valuesModel);
         tblRegValues.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
         tblRegValues.setFillsViewportHeight(true);
-        tblRegValues.setGridColor(new java.awt.Color(204, 204, 204));
+        tblRegValues.setGridColor(new java.awt.Color(225, 225, 225));
         tblRegValues.setMaximumSize(new java.awt.Dimension(1000000000, 1000000000));
-        tblRegValues.setRowMargin(5);
-        tblRegValues.setSelectionBackground(java.awt.SystemColor.activeCaption);
-        tblRegValues.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        tblRegValues.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tblRegValues.setShowHorizontalLines(false);
         tblRegValues.setShowVerticalLines(false);
+        tblRegValues.getTableHeader().setReorderingAllowed(false);
         TableColumnModel model = tblRegValues.getColumnModel();
+        model.setColumnMargin(0);
         model.getColumn(0).setMinWidth(100);
-        model.getColumn(0).setPreferredWidth(100);
+        model.getColumn(0).setPreferredWidth(300);
+        model.getColumn(0).setMaxWidth(2000);
+        model.getColumn(0).setCellRenderer(new RegValueNameRenderer());
         model.getColumn(1).setMinWidth(100);
         model.getColumn(1).setPreferredWidth(100);
+        model.getColumn(1).setMaxWidth(100);
+        model.getColumn(1).setCellRenderer(new PaddedCellRenderer());
         model.getColumn(2).setMinWidth(100);
-        model.getColumn(2).setPreferredWidth(300);
+        model.getColumn(2).setPreferredWidth(400);
+        model.getColumn(2).setMaxWidth(10000);
+        model.getColumn(2).setCellRenderer(new RegValueRenderer());
         srpRegValues.setViewportView(tblRegValues);
 
         splRegEditing.setRightComponent(srpRegValues);
 
         getContentPane().add(splRegEditing);
 
-        setBounds(0, 0, 826, 458);
+        mnuFile.setMnemonic('f');
+        mnuFile.setText("File");
+
+        mnuFileImport.setText("Import");
+        mnuFile.add(mnuFileImport);
+
+        mnuFileExport.setText("Export");
+        mnuFile.add(mnuFileExport);
+        mnuFile.add(jSeparator1);
+
+        mnuFileExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.ALT_MASK));
+        mnuFileExit.setMnemonic('x');
+        mnuFileExit.setText("Exit");
+        mnuFileExit.setActionCommand("Exit");
+        mnuFileExit.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                mnuFileExitActionPerformed(evt);
+            }
+        });
+        mnuFile.add(mnuFileExit);
+
+        menuBar.add(mnuFile);
+
+        mnuEdit.setMnemonic('e');
+        mnuEdit.setText("Edit");
+
+        mnuEditNew.setText("New");
+
+        mnuEditNewKey.setText("Key");
+        mnuEditNewKey.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                mnuEditNewKeyActionPerformed(evt);
+            }
+        });
+        mnuEditNew.add(mnuEditNewKey);
+        mnuEditNew.add(mnuEditNewSep);
+
+        mnuEditNewString.setText("String Value");
+        mnuEditNew.add(mnuEditNewString);
+
+        mnuEditNewBinary.setText("Binary Value");
+        mnuEditNew.add(mnuEditNewBinary);
+
+        mnuEditNewDword.setText("DWORD (32-bit) Value");
+        mnuEditNewDword.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                mnuEditNewDwordActionPerformed(evt);
+            }
+        });
+        mnuEditNew.add(mnuEditNewDword);
+
+        mnuEditNewQword.setText("QWORD (64-bit) Value");
+        mnuEditNew.add(mnuEditNewQword);
+
+        mnuEditNewMultiString.setText("Multi-String Value");
+        mnuEditNew.add(mnuEditNewMultiString);
+
+        mnuEditNewExtString.setText("Expandable String Value");
+        mnuEditNew.add(mnuEditNewExtString);
+
+        mnuEdit.add(mnuEditNew);
+
+        menuBar.add(mnuEdit);
+
+        setJMenuBar(menuBar);
+
+        setBounds(0, 0, 1015, 654);
     }// </editor-fold>//GEN-END:initComponents
 
     private void treRegKeysValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treRegKeysValueChanged
-        Object key = evt.getPath().getLastPathComponent();
+		Object key = evt.getPath().getLastPathComponent();
 		if (key instanceof RegKey)
 		{
-			ValuesTableModel model = (ValuesTableModel)(tblRegValues.getModel());
-			model.updateValues((RegKey)key);
+			ValuesTableModel model = (ValuesTableModel) (tblRegValues.getModel());
+			model.updateValues((RegKey) key);
 		}
     }//GEN-LAST:event_treRegKeysValueChanged
+
+    private void mnuFileExitActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_mnuFileExitActionPerformed
+    {//GEN-HEADEREND:event_mnuFileExitActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_mnuFileExitActionPerformed
+
+    private void mnuEditNewKeyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_mnuEditNewKeyActionPerformed
+    {//GEN-HEADEREND:event_mnuEditNewKeyActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_mnuEditNewKeyActionPerformed
+
+    private void mnuEditNewDwordActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_mnuEditNewDwordActionPerformed
+    {//GEN-HEADEREND:event_mnuEditNewDwordActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_mnuEditNewDwordActionPerformed
+
+    private void treRegKeysTreeWillExpand(javax.swing.event.TreeExpansionEvent evt)throws javax.swing.tree.ExpandVetoException//GEN-FIRST:event_treRegKeysTreeWillExpand
+    {//GEN-HEADEREND:event_treRegKeysTreeWillExpand
+        splRegEditing.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+    }//GEN-LAST:event_treRegKeysTreeWillExpand
+
+    private void treRegKeysTreeExpanded(javax.swing.event.TreeExpansionEvent evt)//GEN-FIRST:event_treRegKeysTreeExpanded
+    {//GEN-HEADEREND:event_treRegKeysTreeExpanded
+        splRegEditing.setCursor(Cursor.getDefaultCursor());
+    }//GEN-LAST:event_treRegKeysTreeExpanded
 
 	/**
 	 * @param args the command line arguments
 	 */
-	public static void main(String args[]) {
+	public static void main(String args[])
+	{
 		/*
 		 * Set the Nimbus look and feel
 		 */
@@ -140,20 +381,27 @@ public class RegistryEditor extends javax.swing.JFrame {
 		 * look and feel. For details see
 		 * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
 		 */
-		try {
-			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-				if ("Windows".equals(info.getName())) {
+		try
+		{
+			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
+			{
+				if ("Windows".equals(info.getName()))
+				{
 					javax.swing.UIManager.setLookAndFeel(info.getClassName());
 					break;
 				}
 			}
-		} catch (ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex)
+		{
 			java.util.logging.Logger.getLogger(RegistryEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (InstantiationException ex) {
+		} catch (InstantiationException ex)
+		{
 			java.util.logging.Logger.getLogger(RegistryEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (IllegalAccessException ex) {
+		} catch (IllegalAccessException ex)
+		{
 			java.util.logging.Logger.getLogger(RegistryEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (javax.swing.UnsupportedLookAndFeelException ex) {
+		} catch (javax.swing.UnsupportedLookAndFeelException ex)
+		{
 			java.util.logging.Logger.getLogger(RegistryEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 		}
 		//</editor-fold>
@@ -161,14 +409,32 @@ public class RegistryEditor extends javax.swing.JFrame {
 		/*
 		 * Create and display the form
 		 */
-		java.awt.EventQueue.invokeLater(new Runnable() {
+		java.awt.EventQueue.invokeLater(new Runnable()
+		{
 
-			public void run() {
+			public void run()
+			{
 				new RegistryEditor().setVisible(true);
 			}
 		});
 	}
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JMenuBar menuBar;
+    private javax.swing.JMenu mnuEdit;
+    private javax.swing.JMenu mnuEditNew;
+    private javax.swing.JMenuItem mnuEditNewBinary;
+    private javax.swing.JMenuItem mnuEditNewDword;
+    private javax.swing.JMenuItem mnuEditNewExtString;
+    private javax.swing.JMenuItem mnuEditNewKey;
+    private javax.swing.JMenuItem mnuEditNewMultiString;
+    private javax.swing.JMenuItem mnuEditNewQword;
+    private javax.swing.JPopupMenu.Separator mnuEditNewSep;
+    private javax.swing.JMenuItem mnuEditNewString;
+    private javax.swing.JMenu mnuFile;
+    private javax.swing.JMenuItem mnuFileExit;
+    private javax.swing.JMenuItem mnuFileExport;
+    private javax.swing.JMenuItem mnuFileImport;
     private javax.swing.JSplitPane splRegEditing;
     private javax.swing.JScrollPane srpRegKeys;
     private javax.swing.JScrollPane srpRegValues;

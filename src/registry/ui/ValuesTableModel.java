@@ -57,8 +57,8 @@ public class ValuesTableModel extends AbstractTableModel
 		RegValue val = values[rowIndex];
 		switch (columnIndex)
 		{
-		case 0: //Value name
-			return val.getValueName();
+		case 0: //Value
+			return val;
 		case 1: //Value type
 			return val.getValueType();
 		case 2: //Value
@@ -90,7 +90,8 @@ public class ValuesTableModel extends AbstractTableModel
 			LOG.log(Level.SEVERE, "Error " + (e.getHR().intValue() & 0xFFFF)
 				+ " (" + e.getMessage() + ")", e);
 		} catch (Exception e) {
-			LOG.log(Level.SEVERE, "Unexpected error: " + e.getMessage(), e);
+			LOG.log(Level.SEVERE, "Unexpected error: " + e.getMessage() == null ? 
+				e.getClass().getName() : e.getMessage(), e);
 			System.exit(1);
 		}
 	}

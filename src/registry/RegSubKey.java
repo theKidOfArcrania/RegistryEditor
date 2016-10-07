@@ -10,28 +10,31 @@ import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.platform.win32.WinReg.HKEY;
 import com.sun.jna.platform.win32.WinReg.HKEYByReference;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
  *
  * @author henry.wang.1
  */
-public class RegSubKey implements RegKey {
+public class RegSubKey implements RegKey
+{
 
 	private boolean attempted;
 	private final HKEYByReference hKey;
 	private final String name;
 	private boolean opened;
 	private RegKey parent;
-	
+
 	private boolean writable;
 
 	private RegSubKey[] subKeysList;
 	private final HashMap<String, RegSubKey> subKeys;
 	private RegValue[] valuesList;
 	private final HashMap<String, RegValue> values;
-	
-	RegSubKey(RegKey parent, String name) {
+
+	RegSubKey(RegKey parent, String name)
+	{
 		this.parent = parent;
 		this.name = name;
 		this.hKey = new HKEYByReference();
@@ -41,20 +44,27 @@ public class RegSubKey implements RegKey {
 		values = new HashMap<>();
 	}
 
-	public void close() {
+	public void close()
+	{
 		attempted = false;
-		if (opened) {
+		if (opened)
+		{
 			Win32Exception err = null;
-			try {
+			try
+			{
 				Advapi32Util.registryCloseKey(hKey.getValue());
-			} catch (Win32Exception e) {
+			} catch (Win32Exception e)
+			{
 				err = e;
 			}
 
-			for (RegSubKey sub : subKeys.values()) {
-				try {
+			for (RegSubKey sub : subKeys.values())
+			{
+				try
+				{
 					sub.close();
-				} catch (Win32Exception e) {
+				} catch (Win32Exception e)
+				{
 					//Don't care about closing errors
 					e.printStackTrace();
 				}
@@ -63,45 +73,54 @@ public class RegSubKey implements RegKey {
 			subKeys.clear();
 			subKeysList = null;
 			opened = writable = false;
-			if (err != null) {
+			if (err != null)
+			{
 				throw err;
 			}
 		}
 	}
 
 	@Override
-	public HKEY getHKey() {
+	public HKEY getHKey()
+	{
 		if (!attempted)
 			refresh();
 		return hKey.getValue();
 	}
 
-	public String getName() {
+	public String getName()
+	{
 		return name;
 	}
 
 	@Override
-	public RegSubKey[] getSubKeys() {
-		if (!attempted) {
+	public RegSubKey[] getSubKeys()
+	{
+		if (!attempted)
+		{
 			refresh();
 		}
 		return subKeysList;
 	}
 
 	@Override
-	public RegValue[] getValues() {
+	public RegValue[] getValues()
+	{
 		if (!attempted)
 			refresh();
 		return valuesList;
 	}
 
-	public void open(boolean write) throws Win32Exception {
-		if (opened && !write || opened && write && writable) {
+	public void open(boolean write) throws Win32Exception
+	{
+		if (opened && !write || opened && write && writable)
+		{
 			return;
 		}
 		int rc = REGS.RegOpenKeyEx(parent.getHKey(), name, 0, (write
 			? WinNT.KEY_ALL_ACCESS : WinNT.KEY_READ), hKey);
-		if (rc != W32Errors.ERROR_SUCCESS) {
+		if (rc != W32Errors.ERROR_SUCCESS)
+		{
 			throw new Win32Exception(rc);
 		}
 		opened = true;
@@ -109,32 +128,40 @@ public class RegSubKey implements RegKey {
 	}
 
 	@Override
-	public void refresh() {
+	public void refresh()
+	{
 		attempted = true;
 		open(false);
-		
+
 		//Load sub keys
 		String[] subKeyNames = Advapi32Util.registryGetKeys(hKey.getValue());
+		Arrays.sort(subKeyNames, String.CASE_INSENSITIVE_ORDER);
 		RegSubKey[] keysLoading = new RegSubKey[subKeyNames.length];
-		for (int i = 0; i < keysLoading.length; i++) {
-			if (subKeys.containsKey(subKeyNames[i])) {
+		for (int i = 0; i < keysLoading.length; i++)
+		{
+			if (subKeys.containsKey(subKeyNames[i]))
+			{
 				keysLoading[i] = subKeys.get(subKeyNames[i]);
 				keysLoading[i].refresh();
-			} else {
+			} else
+			{
 				keysLoading[i] = new RegSubKey(this, subKeyNames[i]);
 				subKeys.put(subKeyNames[i], keysLoading[i]);
 			}
 		}
 		subKeysList = keysLoading;
-		
+
 		//Load values
 		String[] valueNames = RegKey.getValueNames(hKey.getValue());
 		RegValue[] valuesLoading = new RegValue[valueNames.length];
-		for (int i = 0; i < valuesLoading.length; i++) {
-			if (values.containsKey(valueNames[i])) {
+		for (int i = 0; i < valuesLoading.length; i++)
+		{
+			if (values.containsKey(valueNames[i]))
+			{
 				valuesLoading[i] = values.get(valueNames[i]);
 				valuesLoading[i].refresh();
-			} else {
+			} else
+			{
 				valuesLoading[i] = new RegValue(this, valueNames[i]);
 				values.put(valueNames[i], valuesLoading[i]);
 			}
@@ -143,12 +170,14 @@ public class RegSubKey implements RegKey {
 	}
 
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		return name;
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
+	protected void finalize() throws Throwable
+	{
 		super.finalize();
 		close();
 	}

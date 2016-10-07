@@ -17,31 +17,31 @@ import java.util.Arrays;
  *
  * @author henry.wang.1
  */
-public interface RegKey {
+public interface RegKey
+{
+
 	public static final Advapi32 REGS = Advapi32.INSTANCE;
-	
+
 	public static String[] getValueNames(HKEY hKey)
 	{
 		Advapi32Util.InfoKey info = Advapi32Util.registryQueryInfoKey(hKey, 0);
-		String[] valueNames = new String[info.lpcValues.getValue() + 1];
+		String[] valueNames = new String[info.lpcValues.getValue()];
 		boolean hasDefault = false;
-		
+
 		char[] lpValueName = new char[info.lpcMaxValueNameLen.getValue() + 1];
 		IntByReference lpcchValueName = new IntByReference(0);
-		
-		valueNames[0] = "";
-		
+
 		for (int i = 0; i < valueNames.length; i++)
 		{
 			lpcchValueName.setValue(lpValueName.length);
-			int status = REGS.RegEnumValue(hKey, i, lpValueName, lpcchValueName, 
-					null, null, null, null);
+			int status = REGS.RegEnumValue(hKey, i, lpValueName, lpcchValueName,
+				null, null, null, null);
 			if (status == WinError.ERROR_NO_MORE_ITEMS)
 				break;
-			else if (status != WinError.ERROR_MORE_DATA && 
-					status != WinError.ERROR_SUCCESS)
+			else if (status != WinError.ERROR_MORE_DATA
+				&& status != WinError.ERROR_SUCCESS)
 				throw new Win32Exception(status);
-			
+
 			int len = lpValueName.length;
 			for (int j = 0; j < lpValueName.length; j++)
 			{
@@ -51,17 +51,21 @@ public interface RegKey {
 					break;
 				}
 			}
-			
+
 			if (i == 0 && len == 0)
 				hasDefault = true;
-			valueNames[i + (hasDefault ? 0 : 1)] = new String(lpValueName, 0, len);
+			valueNames[i] = new String(lpValueName, 0, len);
 		}
-		if (hasDefault)
-			return Arrays.copyOf(valueNames, valueNames.length - 1);
-		else
-			return valueNames;
+		
+		if (!hasDefault)
+		{
+			valueNames = Arrays.copyOf(valueNames, valueNames.length + 1);
+			valueNames[valueNames.length - 1] = "";
+		}
+		Arrays.sort(valueNames, String.CASE_INSENSITIVE_ORDER);
+		return valueNames;
 	}
-	
+
 	RegSubKey[] getSubKeys();
 
 	RegValue[] getValues();
@@ -69,5 +73,5 @@ public interface RegKey {
 	void refresh();
 
 	HKEY getHKey();
-	
+
 }
