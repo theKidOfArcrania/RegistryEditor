@@ -29,7 +29,6 @@
                 </Property>
                 <Property name="mnemonic" type="int" value="120"/>
                 <Property name="text" type="java.lang.String" value="Exit"/>
-                <Property name="actionCommand" type="java.lang.String" value="Exit"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="mnuFileExitActionPerformed"/>
@@ -207,6 +206,9 @@
                 <Property name="showHorizontalLines" type="boolean" value="false"/>
                 <Property name="showVerticalLines" type="boolean" value="false"/>
               </Properties>
+              <Events>
+                <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="tblRegValuesMouseClicked"/>
+              </Events>
               <AuxValues>
                 <AuxValue name="JavaCodeGenerator_CreateCodePre" type="java.lang.String" value="valuesModel = new ValuesTableModel(null);&#xd;&#xa;"/>
                 <AuxValue name="JavaCodeGenerator_DeclarationPre" type="java.lang.String" value="private ValuesTableModel valuesModel;"/>

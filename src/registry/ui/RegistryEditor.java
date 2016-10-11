@@ -12,12 +12,15 @@ package registry.ui;
 
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import static javax.management.Query.value;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
@@ -26,6 +29,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import registry.RegKey;
 import registry.RegValue;
+import registry.RegValue.RegValueType;
 
 
 /**
@@ -34,7 +38,7 @@ import registry.RegValue;
  */
 public class RegistryEditor extends javax.swing.JFrame
 {
-
+	
 	private static class PaddedCellRenderer extends DefaultTableCellRenderer
 	{
 
@@ -114,6 +118,9 @@ public class RegistryEditor extends javax.swing.JFrame
 
 	}
 
+	private static final HashMap<RegValueType, RegValueEditor> EDITORS = 
+			new HashMap<>();
+	
 	/**
 	 * Creates new form RegistryViewer
 	 */
@@ -158,8 +165,7 @@ public class RegistryEditor extends javax.swing.JFrame
 	 */
 	@SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
 
         splRegEditing = new javax.swing.JSplitPane();
         srpRegKeys = new javax.swing.JScrollPane();
@@ -196,30 +202,22 @@ public class RegistryEditor extends javax.swing.JFrame
         treRegKeys.setModel(new RegKeyModel());
         treRegKeys.setRootVisible(false);
         treRegKeys.setShowsRootHandles(true);
-        treRegKeys.addTreeExpansionListener(new javax.swing.event.TreeExpansionListener()
-        {
-            public void treeCollapsed(javax.swing.event.TreeExpansionEvent evt)
-            {
+        treRegKeys.addTreeExpansionListener(new javax.swing.event.TreeExpansionListener() {
+            public void treeCollapsed(javax.swing.event.TreeExpansionEvent evt) {
             }
-            public void treeExpanded(javax.swing.event.TreeExpansionEvent evt)
-            {
+            public void treeExpanded(javax.swing.event.TreeExpansionEvent evt) {
                 treRegKeysTreeExpanded(evt);
             }
         });
-        treRegKeys.addTreeWillExpandListener(new javax.swing.event.TreeWillExpandListener()
-        {
-            public void treeWillCollapse(javax.swing.event.TreeExpansionEvent evt)throws javax.swing.tree.ExpandVetoException
-            {
+        treRegKeys.addTreeWillExpandListener(new javax.swing.event.TreeWillExpandListener() {
+            public void treeWillCollapse(javax.swing.event.TreeExpansionEvent evt)throws javax.swing.tree.ExpandVetoException {
             }
-            public void treeWillExpand(javax.swing.event.TreeExpansionEvent evt)throws javax.swing.tree.ExpandVetoException
-            {
+            public void treeWillExpand(javax.swing.event.TreeExpansionEvent evt)throws javax.swing.tree.ExpandVetoException {
                 treRegKeysTreeWillExpand(evt);
             }
         });
-        treRegKeys.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener()
-        {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt)
-            {
+        treRegKeys.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
                 treRegKeysValueChanged(evt);
             }
         });
@@ -252,6 +250,11 @@ public class RegistryEditor extends javax.swing.JFrame
         model.getColumn(2).setPreferredWidth(400);
         model.getColumn(2).setMaxWidth(10000);
         model.getColumn(2).setCellRenderer(new RegValueRenderer());
+        tblRegValues.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblRegValuesMouseClicked(evt);
+            }
+        });
         srpRegValues.setViewportView(tblRegValues);
 
         splRegEditing.setRightComponent(srpRegValues);
@@ -271,11 +274,8 @@ public class RegistryEditor extends javax.swing.JFrame
         mnuFileExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.ALT_MASK));
         mnuFileExit.setMnemonic('x');
         mnuFileExit.setText("Exit");
-        mnuFileExit.setActionCommand("Exit");
-        mnuFileExit.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        mnuFileExit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuFileExitActionPerformed(evt);
             }
         });
@@ -289,10 +289,8 @@ public class RegistryEditor extends javax.swing.JFrame
         mnuEditNew.setText("New");
 
         mnuEditNewKey.setText("Key");
-        mnuEditNewKey.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        mnuEditNewKey.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuEditNewKeyActionPerformed(evt);
             }
         });
@@ -306,10 +304,8 @@ public class RegistryEditor extends javax.swing.JFrame
         mnuEditNew.add(mnuEditNewBinary);
 
         mnuEditNewDword.setText("DWORD (32-bit) Value");
-        mnuEditNewDword.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        mnuEditNewDword.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuEditNewDwordActionPerformed(evt);
             }
         });
@@ -367,6 +363,27 @@ public class RegistryEditor extends javax.swing.JFrame
         splRegEditing.setCursor(Cursor.getDefaultCursor());
     }//GEN-LAST:event_treRegKeysTreeExpanded
 
+    private void tblRegValuesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblRegValuesMouseClicked
+		if (evt.getClickCount() == 4 && evt.getButton() == MouseEvent.BUTTON1);
+		{
+			int row = tblRegValues.rowAtPoint(evt.getPoint());
+			if (row != -1)
+			{
+				RegValue val = (RegValue)tblRegValues.getValueAt(row, 0);
+				RegValueEditor editor = EDITORS.get(val.getValueType());
+				if (editor != null)
+				{
+					Object newVal = editor.showEditor(this, val.getValueName(), 
+							val.getValueType(), val.getValue());
+					if (newVal == null)
+						System.out.println("Canceled change");
+					else
+						System.out.println("Changed to '" + newVal + "'");
+				}
+			}
+		}
+    }//GEN-LAST:event_tblRegValuesMouseClicked
+
 	/**
 	 * @param args the command line arguments
 	 */
@@ -406,6 +423,13 @@ public class RegistryEditor extends javax.swing.JFrame
 		}
 		//</editor-fold>
 
+		RegIntegerEditor intEditor = new RegIntegerEditor();
+		RegStringEditor stringEditor = new RegStringEditor();
+		EDITORS.put(RegValueType.REG_DWORD, intEditor);
+		EDITORS.put(RegValueType.REG_QWORD, intEditor);
+		EDITORS.put(RegValueType.REG_EXPAND_SZ, stringEditor);
+		EDITORS.put(RegValueType.REG_SZ, stringEditor);
+		
 		/*
 		 * Create and display the form
 		 */
@@ -414,7 +438,9 @@ public class RegistryEditor extends javax.swing.JFrame
 
 			public void run()
 			{
-				new RegistryEditor().setVisible(true);
+				RegistryEditor main = new RegistryEditor();
+				main.setLocationRelativeTo(null);
+				main.setVisible(true);
 			}
 		});
 	}

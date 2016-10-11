@@ -114,15 +114,13 @@ public class RegSubKey implements RegKey
 	public void open(boolean write) throws Win32Exception
 	{
 		if (opened && !write || opened && write && writable)
-		{
 			return;
-		}
+		
+		REGS.RegCloseKey(hKey.getValue());
 		int rc = REGS.RegOpenKeyEx(parent.getHKey(), name, 0, (write
 			? WinNT.KEY_ALL_ACCESS : WinNT.KEY_READ), hKey);
 		if (rc != W32Errors.ERROR_SUCCESS)
-		{
 			throw new Win32Exception(rc);
-		}
 		opened = true;
 		writable = write;
 	}

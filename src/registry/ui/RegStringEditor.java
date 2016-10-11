@@ -12,7 +12,6 @@ import java.awt.Window;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
-import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -23,7 +22,7 @@ import registry.RegValue.RegValueType;
  *
  * @author henry.wang.1
  */
-public class RegIntegerEditor extends JPanel implements RegValueEditor
+public class RegStringEditor extends JPanel implements RegValueEditor
 {
 	
 	private static Window getWindow(Component c)
@@ -38,89 +37,11 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
 		return null;
 	}
 	
-	private enum NumberBase
-	{
-		Decimal(10), Hexadecimal(16);
-		
-		private final int base;
-
-		private NumberBase(int base) {
-			this.base = base;
-		}
-	}
-	
 	private boolean canceled = false;
 	private RegValueType type;
-	private NumberBase base = NumberBase.Decimal;
-	private Object value;
 	
-	public class IntFilter extends DocumentFilter
-	{
-		
-		@Override
-		public void insertString(FilterBypass fb, int offset, String text, AttributeSet attrs) throws BadLocationException {
-			Document doc = fb.getDocument();
-			String result = doc.getText(0, offset) + text
-					+ doc.getText(offset, doc.getLength() - 
-							offset);
-			
-			if (changeValue(result))
-				fb.insertString(offset, text, attrs);
-		}
-
-		@Override
-		public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
-			Document doc = fb.getDocument();
-			String result = doc.getText(0, offset)
-					+ doc.getText(offset + length, doc.getLength() - 
-							offset - length);
-			if (changeValue(result))
-				fb.remove(offset, length);
-		}
-
-		
-		
-		@Override
-		public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-			Document doc = fb.getDocument();
-			String result = doc.getText(0, offset) + text
-					+ doc.getText(offset + length, doc.getLength() - 
-							offset - length);
-			if (changeValue(result))
-				fb.replace(offset, length, text, attrs);
-		}
-		
-		private boolean changeValue(String num)
-		{
-			try
-			{
-				switch (type)
-				{
-				case REG_DWORD:
-					if (num.isEmpty())
-						value = 0;
-					else
-						value = Integer.parseInt(num, base.base);
-					break;
-				case REG_QWORD:
-					if (num.isEmpty())
-						value = 0L;
-					else
-						value = Long.parseLong(num, base.base);
-					break;
-				default:
-					throw new InternalError();
-				}
-				return true;
-			}
-			catch (NumberFormatException e)
-			{
-				return false;
-			}
-		}
-	}
 	
-	public RegIntegerEditor()
+	public RegStringEditor()
 	{
 		initComponents();
 	}
@@ -132,7 +53,7 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
 			txtValueName.setText("(Default)");
 		else
 			txtValueName.setText(name);
-		txtValueData.setText(val.toString());
+		txtValueData.setText((String)val);
 		
 		canceled = true;
 		JDialog dlg = new JDialog(owner, "Edit " + type.getShortName(), 
@@ -144,10 +65,11 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
 		dlg.setLocationRelativeTo(owner);
 		dlg.setVisible(true);
 		
+		System.out.println(canceled);
 		if (canceled)
 			return null;
 		else
-			return value;
+			return txtValueData.getText();
 	}
 	
 	/**
@@ -165,9 +87,6 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         txtValueName = new javax.swing.JTextField();
         lblValueData = new javax.swing.JLabel();
         txtValueData = new javax.swing.JTextField();
-        pnlBase = new javax.swing.JPanel();
-        rbnDeci = new javax.swing.JRadioButton();
-        rbnHex = new javax.swing.JRadioButton();
         pnlButtons = new javax.swing.JPanel();
         btnOkay = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
@@ -204,11 +123,8 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 0, 10);
         add(lblValueData, gridBagConstraints);
 
-        txtValueData.setText("0");
         txtValueData.setMinimumSize(new java.awt.Dimension(100, 20));
         txtValueData.setPreferredSize(new java.awt.Dimension(100, 20));
-        ((AbstractDocument)txtValueData.getDocument())
-        .setDocumentFilter(new IntFilter());
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -217,37 +133,6 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
         gridBagConstraints.weightx = 0.1;
         gridBagConstraints.insets = new java.awt.Insets(2, 10, 0, 10);
         add(txtValueData, gridBagConstraints);
-
-        pnlBase.setBorder(javax.swing.BorderFactory.createTitledBorder("Base"));
-        pnlBase.setMinimumSize(new java.awt.Dimension(150, 69));
-        pnlBase.setPreferredSize(new java.awt.Dimension(150, 69));
-        pnlBase.setLayout(new java.awt.GridLayout(2, 0));
-
-        btngpBase.add(rbnDeci);
-        rbnDeci.setSelected(true);
-        rbnDeci.setText("Decimal");
-        rbnDeci.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                rbnDeciStateChanged(evt);
-            }
-        });
-        pnlBase.add(rbnDeci);
-
-        btngpBase.add(rbnHex);
-        rbnHex.setText("Hexadecimal");
-        rbnHex.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                rbnHexStateChanged(evt);
-            }
-        });
-        pnlBase.add(rbnHex);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(10, 0, 0, 10);
-        add(pnlBase, gridBagConstraints);
 
         pnlButtons.setLayout(new java.awt.GridLayout(1, 0, 5, 0));
 
@@ -286,34 +171,13 @@ public class RegIntegerEditor extends JPanel implements RegValueEditor
 		getWindow(this).setVisible(false);
     }//GEN-LAST:event_btnOkayActionPerformed
 
-    private void rbnDeciStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_rbnDeciStateChanged
-        if (rbnDeci.isSelected() && base != NumberBase.Decimal)
-		{
-			base = NumberBase.Decimal;
-			long val = (value instanceof Long) ? (Long) value : (Integer) value;
-			txtValueData.setText(Long.toString(val));
-		}
-    }//GEN-LAST:event_rbnDeciStateChanged
-
-    private void rbnHexStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_rbnHexStateChanged
-        if (rbnHex.isSelected() && base != NumberBase.Hexadecimal)
-		{
-			base = NumberBase.Hexadecimal;
-			long val = (value instanceof Long) ? (Long) value : (Integer) value;
-			txtValueData.setText(Long.toString(val, 16));
-		}
-    }//GEN-LAST:event_rbnHexStateChanged
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnOkay;
     private javax.swing.ButtonGroup btngpBase;
     private javax.swing.JLabel lblValueData;
     private javax.swing.JLabel lblValueName;
-    private javax.swing.JPanel pnlBase;
     private javax.swing.JPanel pnlButtons;
-    private javax.swing.JRadioButton rbnDeci;
-    private javax.swing.JRadioButton rbnHex;
     private javax.swing.JTextField txtValueData;
     private javax.swing.JTextField txtValueName;
     // End of variables declaration//GEN-END:variables
